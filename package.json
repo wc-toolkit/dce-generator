@@ -1,0 +1,67 @@
+{
+  "name": "dce-generator",
+  "version": "1.0.0-alpha.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "generate": "node demo/generate.js",
+    "build": "tsup src/index.ts --dts --format esm",
+    "clean": "git clean -fdX",
+    "deploy": "npm run build && npm publish",
+    "format": "prettier . --write",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "test": "vitest --run --passWithNoTests",
+    "prepare": "husky",
+    "release": "pnpm run build && changeset publish --access=public"
+
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "/dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wc-toolkit/dce-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wc-toolkit/dce-generator/issues"
+  },
+  "homepage": "https://github.com/wc-toolkit/dce-generator",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@changesets/cli": "^2.27.12",
+    "@custom-elements-manifest/analyzer": "^0.10.4",
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^20.14.12",
+    "@wc-toolkit/cem-utilities": "^1.2.0",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "husky": "^9.1.7",
+    "prettier": "3.4.2",
+    "puppeteer": "^24.7.2",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.21.0",
+    "vitest": "^3.0.4"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache --fix",
+    "*.--write": "prettier --write"
+  },
+  "publishConfig": {
+    "provenance": true,
+    "access": "public"
+  }
+}
