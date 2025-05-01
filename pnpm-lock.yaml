@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      puppeteer:
+        specifier: ^24.7.2
+        version: 24.7.2(typescript@5.8.3)
     devDependencies:
       '@changesets/cli':
         specifier: ^2.27.12
@@ -35,9 +39,6 @@ importers:
       prettier:
         specifier: 3.4.2
         version: 3.4.2
-      puppeteer:
-        specifier: ^24.7.2
-        version: 24.7.2(typescript@5.8.3)
       tsup:
         specifier: ^8.3.6
         version: 8.4.0(postcss@8.5.3)(typescript@5.8.3)

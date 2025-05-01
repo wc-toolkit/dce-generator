@@ -27,4 +27,3 @@ await generateDeclarativeCustomElements(manifest, {
     )}/${tagName?.replace("sl-", "")}.js`,
     minify: true,
 });
-// await generateDeclarativeCustomElements(manifest, "output.min.html", true);

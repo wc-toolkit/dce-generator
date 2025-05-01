@@ -1,6 +1,6 @@
 {
-  "name": "dce-generator",
-  "version": "1.0.0-alpha.0",
+  "name": "@wc-toolkit/dce-generator",
+  "version": "1.0.0-alpha.1",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -40,6 +40,9 @@
   "author": "",
   "license": "MIT",
   "description": "",
+  "dependencies": {
+    "puppeteer": "^24.7.2"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.12",
     "@custom-elements-manifest/analyzer": "^0.10.4",
@@ -50,7 +53,6 @@
     "eslint-config-prettier": "^10.0.1",
     "husky": "^9.1.7",
     "prettier": "3.4.2",
-    "puppeteer": "^24.7.2",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.21.0",
@@ -59,9 +61,5 @@
   "lint-staged": {
     "*.ts": "eslint --cache --fix",
     "*.--write": "prettier --write"
-  },
-  "publishConfig": {
-    "provenance": true,
-    "access": "public"
   }
 }
