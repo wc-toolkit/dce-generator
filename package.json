@@ -1,10 +1,10 @@
 {
   "name": "@wc-toolkit/dce-generator",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "generate": "node demo/generate.js",
+    "generate": "npm run build && node demo/generate.js",
     "build": "tsup src/index.ts --dts --format esm",
     "clean": "git clean -fdX",
     "deploy": "npm run build && npm publish",
@@ -18,9 +18,9 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.js"
     }
   },
   "files": [

@@ -14,7 +14,7 @@ export type DceGeneratorConfig = {
   outdir?: string;
   /**
    * Name of the output file
-   * @default "declarative-custom-elements.html"
+   * @default "declarative-custom-elements"
    * @example "my-custom-elements.html"
    */
   fileName?: string;
@@ -47,6 +47,13 @@ export type DceGeneratorConfig = {
    * @default 1000
    */
   loadTimeout?: number;
+  /**
+   * JavaScript framework wrapper components
+   * @default ['vue', 'jsx', 'svelte', 'angular', 'html', 'esm']
+   */
+  wrapperComponents?: Array<
+    "vue" | "jsx" | "svelte" | "angular" | "html" | "esm"
+  >;
 };
 
 export type WrapperTemplate = {
@@ -56,10 +63,11 @@ export type WrapperTemplate = {
 
 const defaultConfig: DceGeneratorConfig = {
   outdir: "./",
-  fileName: "declarative-custom-elements.html",
+  fileName: "declarative-custom-elements",
   minify: false,
   moduleName: "DeclarativeCustomElements",
   loadTimeout: 1000,
+  wrapperComponents: ["vue", "jsx", "svelte", "angular", "html", "esm"],
 };
 
 /**
@@ -156,7 +164,7 @@ async function generateDeclarativeCustomElements(
 
     templates.forEach((template) => {
       outputContent += `<definition name="${template.tagName}">\n`;
-      outputContent += `  <template id="${template.tagName}">\n`;
+      outputContent += `  <template>\n`;
       outputContent += `    ${template.html}\n`;
       outputContent += `  </template>\n`;
       outputContent += `</definition>\n\n`;
@@ -164,17 +172,26 @@ async function generateDeclarativeCustomElements(
 
     const outputPath = path.join(
       config.outdir || process.cwd(),
-      config.fileName || "declarative-custom-elements.html"
+      config.fileName || "declarative-custom-elements"
     );
 
     // Create output directory if it doesn't exist
     createOutDir(config.outdir || process.cwd());
     console.log(`Creating output directory: ${config.outdir || process.cwd()}`);
 
-    await fs.writeFile(
-      outputPath,
+    const contents = (
       config.minify ? minifyHTML(outputContent) : cleanUp(outputContent)
-    );
+    )
+      .replace(
+        /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)([^>]*?)(?<!\/)\s*>/gi,
+        "<$1$2 />"
+      )
+      .replace(
+        /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)([^>]*?)\s\/\s\/>/gi,
+        "<$1$2 />"
+      );
+
+    generateAllWrappers(contents, config);
     console.log(`Generated templates file at ${outputPath}`);
 
     // Clean up temporary file
@@ -207,10 +224,117 @@ function cleanUp(html: string) {
     .trim();
 }
 
+function generateVueWrapper(contents: string, config: DceGeneratorConfig) {
+  const template = `<template>\n${contents}\n</template>`;
+  saveFile(config.outdir || process.cwd(), config.fileName + ".vue", template);
+}
+
+function generateJsxWrapper(contents: string, config: DceGeneratorConfig) {
+  const formattedContents = contents
+    .replaceAll("<style>", "<style>{`")
+    .replaceAll("</style>", "`}</style>")
+    .replaceAll(' class="', ' className="')
+    .replaceAll(' for="', ' htmlFor="')
+    .replaceAll(' tabindex="', ' tabIndex="');
+  const template = `export default function ${config.moduleName}() {\n  return (\n    <>\n      ${formattedContents}\n    </>\n  );\n}`;
+  saveFile(config.outdir || process.cwd(), config.fileName + ".jsx", template);
+}
+
+function generateSvelteWrapper(contents: string, config: DceGeneratorConfig) {
+  saveFile(
+    config.outdir || process.cwd(),
+    config.fileName + ".svelte",
+    contents
+  );
+}
+
+function generateAngularWrapper(contents: string, config: DceGeneratorConfig) {
+  const template = `import {Component} from '@angular/core';
+
+@Component({
+  selector: '${toKebabCase(config.moduleName)}',
+  template: \`${contents}\`,
+})
+export class ${config.moduleName} { }`;
+  saveFile(
+    config.outdir || process.cwd(),
+    config.fileName + ".angular.ts",
+    template
+  );
+}
+
+function toKebabCase(str: string) {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .toLowerCase();
+}
+
+function generateHtmlWrapper(contents: string, config: DceGeneratorConfig) {
+  saveFile(config.outdir || process.cwd(), config.fileName + ".html", contents);
+}
+
+function generateEsmWrapper(contents: string, config: DceGeneratorConfig) {
+  const template = `export const ${config.moduleName} = \`${contents}\`;\n`;
+  saveFile(config.outdir || process.cwd(), config.fileName + ".js", template);
+}
+
+function generateWrapper(
+  contents: string,
+  config: DceGeneratorConfig,
+  wrapper: WrapperTemplate
+) {
+  if (!wrapper?.template || !wrapper?.fileName) {
+    console.warn("No template or fileName provided for custom wrapper");
+  } else {
+    const wrappedContent = wrapper.template(contents);
+    saveFile(
+      config.outdir || process.cwd(),
+      wrapper.fileName || "missing-filename.js",
+      wrappedContent
+    );
+  }
+}
+
+function generateAllWrappers(contents: string, config: DceGeneratorConfig) {
+  if (config.wrapperComponents?.includes("vue")) {
+    generateVueWrapper(contents, config);
+  }
+  if (config.wrapperComponents?.includes("jsx")) {
+    generateJsxWrapper(contents, config);
+  }
+  if (config.wrapperComponents?.includes("svelte")) {
+    generateSvelteWrapper(contents, config);
+  }
+  if (config.wrapperComponents?.includes("angular")) {
+    generateAngularWrapper(contents, config);
+  }
+  if (config.wrapperComponents?.includes("html")) {
+    generateHtmlWrapper(contents, config);
+  }
+  if (config.wrapperComponents?.includes("esm")) {
+    generateEsmWrapper(contents, config);
+  }
+  if (config.customWrapperTemplates) {
+    config.customWrapperTemplates.forEach((wrapper) => {
+      generateWrapper(contents, config, wrapper);
+    });
+  }
+}
+
 function createOutDir(outDir: string) {
   if (outDir !== "./" && !fsSync.existsSync(outDir)) {
     fsSync.mkdirSync(outDir, { recursive: true });
   }
+}
+
+function saveFile(outDir: string, fileName: string, contents: string) {
+  const outputPath = path.join(outDir, fileName);
+
+  fsSync.writeFileSync(outputPath, contents);
+
+  return outputPath;
 }
 
 export { generateDeclarativeCustomElements };

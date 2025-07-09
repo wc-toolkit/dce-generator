@@ -42,7 +42,7 @@ import manifest from "./path/to/custom-elements.json";
 // Generate templates
 await generateDeclarativeCustomElements(manifest, {
   outdir: "./output",
-  fileName: "my-components.html",
+  fileName: "my-components",
   minify: true,
   moduleName: "MyComponents",
 });
@@ -60,7 +60,7 @@ type DceGeneratorConfig = {
   outdir?: string;
   /**
    * Name of the output file
-   * @default "declarative-custom-elements.html"
+   * @default "declarative-custom-elements"
    * @example "my-custom-elements.html"
    */
   fileName?: string;
@@ -85,11 +85,22 @@ type DceGeneratorConfig = {
    */
   globalModuleTemplate?: string;
   /**
+   * Custom wrapper templates for the generated file
+   */
+  customWrapperTemplates?: WrapperTemplate[];
+  /**
    * Timeout for rendering components in the headless browser
    * @default 1000
    */
   loadTimeout?: number;
-}
+  /**
+   * JavaScript framework wrapper components
+   * @default ['vue', 'jsx', 'svelte', 'angular', 'html', 'esm']
+   */
+  wrapperComponents?: Array<
+    "vue" | "jsx" | "svelte" | "angular" | "html" | "esm"
+  >;
+};
 ```
 
 ### Custom Module Path
